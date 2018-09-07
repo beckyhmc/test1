@@ -6,6 +6,7 @@ package com.peoplefluent.test;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.function.BiConsumer;
 
 /**
  * @author Becky.McElroy
@@ -13,11 +14,19 @@ import java.util.Scanner;
  */
 public class Checkout {
 
-	private Map<String, Integer> productPrices = new HashMap<String, Integer>();
+	private Map<String, Product> products = new HashMap<String, Product>();
 
 	private void init() {
-		productPrices.put("apple", 60);
-		productPrices.put("orange", 25);
+
+		Map<Integer, Integer> appleOffer = new HashMap<Integer, Integer>();
+		appleOffer.put(2, 1); // <quantity, price factor>
+		Product apple = new Product("apple", 60, appleOffer);
+		products.put("apple", apple);
+
+		Map<Integer, Integer> orangeOffer = new HashMap<Integer, Integer>();
+		orangeOffer.put(3, 2); // <quantity, price factor>
+		Product orange = new Product("orange", 25, orangeOffer);
+		products.put("orange", orange);
 	}
 
 	/**
@@ -43,14 +52,39 @@ public class Checkout {
 				String[] scannedItems = input.split(",");
 
 				double sum = 0;
+				Map<String, Integer> itemCount = new HashMap<String, Integer>();
 				for (int i = 0; i < scannedItems.length; i++) {
-					Integer price = checkout.getProductPrices().get(scannedItems[i].trim().toLowerCase());
-					if (price == null) {
+
+					// calculate full normal price, counting items along the way
+					Product product = checkout.getProducts().get(scannedItems[i].trim().toLowerCase());
+					if (product == null) {
 						System.err.println("Unrecognized item: " + scannedItems[i]);
 					} else {
-						sum += price;
+						sum += product.getPrice();
+
+						if (itemCount.get(product.getName()) == null) {
+							itemCount.put(product.getName(), 1);
+						} else {
+							int prevCount = itemCount.get(product.getName());
+							itemCount.put(product.getName(), ++prevCount);
+						}
 					}
 				}
+				
+				// adjust for special offers
+				itemCount.forEach(new BiConsumer<String, Integer>() {
+
+					@Override
+					public void accept(String productName, Integer num) {
+						Product product = checkout.getProducts().get(productName);
+
+						Map<Integer, Integer> offer = product.getSpecialOffer();
+						if (offer != null) {
+
+						}
+					}
+
+				});
 
 				System.out.println("£" + sum / 100);
 				System.out.println();
@@ -67,11 +101,8 @@ public class Checkout {
 		}
 	}
 
-	public Map<String, Integer> getProductPrices() {
-		return productPrices;
+	public Map<String, Product> getProducts() {
+		return products;
 	}
 
-	public void setProductPrices(Map<String, Integer> prices) {
-		this.productPrices = prices;
-	}
 }
