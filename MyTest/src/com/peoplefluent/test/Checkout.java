@@ -5,8 +5,8 @@ package com.peoplefluent.test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Scanner;
-import java.util.function.BiConsumer;
 
 /**
  * @author Becky.McElroy
@@ -18,14 +18,12 @@ public class Checkout {
 
 	private void init() {
 
-		Map<Integer, Integer> appleOffer = new HashMap<Integer, Integer>();
-		appleOffer.put(2, 1); // <quantity, price factor>
-		Product apple = new Product("apple", 60, appleOffer);
+		Product apple = new Product("apple", 60, 2, 1);
+		// Product apple = new Product("apple", 60, 0, 0);
 		products.put("apple", apple);
 
-		Map<Integer, Integer> orangeOffer = new HashMap<Integer, Integer>();
-		orangeOffer.put(3, 2); // <quantity, price factor>
-		Product orange = new Product("orange", 25, orangeOffer);
+		Product orange = new Product("orange", 25, 3, 2);
+		// Product orange = new Product("orange", 25, 0, 0);
 		products.put("orange", orange);
 	}
 
@@ -58,7 +56,7 @@ public class Checkout {
 					// calculate full normal price, counting items along the way
 					Product product = checkout.getProducts().get(scannedItems[i].trim().toLowerCase());
 					if (product == null) {
-						System.err.println("Unrecognized item: " + scannedItems[i]);
+						System.err.println("Ignoring unrecognized item: " + scannedItems[i]);
 					} else {
 						sum += product.getPrice();
 
@@ -70,23 +68,10 @@ public class Checkout {
 						}
 					}
 				}
-				
-				// adjust for special offers
-				itemCount.forEach(new BiConsumer<String, Integer>() {
 
-					@Override
-					public void accept(String productName, Integer num) {
-						Product product = checkout.getProducts().get(productName);
+				double total = adjustForDiscounts(checkout, sum, itemCount);
 
-						Map<Integer, Integer> offer = product.getSpecialOffer();
-						if (offer != null) {
-
-						}
-					}
-
-				});
-
-				System.out.println("£" + sum / 100);
+				System.out.println("£" + total / 100);
 				System.out.println();
 			}
 
@@ -99,6 +84,23 @@ public class Checkout {
 		} finally {
 			scan.close();
 		}
+	}
+
+	private static double adjustForDiscounts(Checkout checkout, double sum, Map<String, Integer> itemCount) {
+		for (Entry<String, Integer> purchasedProd : itemCount.entrySet()) {
+			Product product = checkout.getProducts().get(purchasedProd.getKey());
+			int discountNum = product.getDiscountQuantity();
+			if (discountNum > 0) {
+				int numPurchased = purchasedProd.getValue();
+				while (numPurchased >= discountNum) {
+					numPurchased -= discountNum;
+					int numToReimb = discountNum - product.getDiscountFactor();
+					sum -= (numToReimb * product.getPrice());
+				}
+			}
+		}
+
+		return sum;
 	}
 
 	public Map<String, Product> getProducts() {

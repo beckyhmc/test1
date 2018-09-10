@@ -1,17 +1,17 @@
 package com.peoplefluent.test;
 
-import java.util.Map;
-
 public class Product {
 	private String name;
 	private int price;
-	private Map<Integer, Integer> specialOffer; // <quantity, price factor>
+	private int discountQuantity;
+	private int discountFactor;
 
-	public Product(String name, int price, Map<Integer, Integer> specialOffer) {
+	public Product(String name, int price, int discountQuantity, int discountFactor) {
 		super();
 		this.name = name;
 		this.price = price;
-		this.specialOffer = specialOffer;
+		this.discountQuantity = discountQuantity;
+		this.discountFactor = discountFactor;
 	}
 
 	public String getName() {
@@ -30,12 +30,21 @@ public class Product {
 		this.price = price;
 	}
 
-	public Map<Integer, Integer> getSpecialOffer() {
-		return specialOffer;
+	public int getDiscountQuantity() {
+		return discountQuantity;
 	}
 
-	public void setSpecialOffer(Map<Integer, Integer> specialOffer) {
-		this.specialOffer = specialOffer;
+	public void setDiscountQuantity(int discountQuantity) {
+		this.discountQuantity = discountQuantity;
 	}
+
+	public int getDiscountFactor() {
+		return discountFactor;
+	}
+
+	public void setDiscountFactor(int discountFactor) {
+		this.discountFactor = discountFactor;
+	}
+
 
 }
